@@ -4,26 +4,61 @@
   connection: local
   gather_facts: False
   vars:
-     java: "http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz"
-     mysql: "http://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.40.zip"
-     wildfly: "http://download.jboss.org/wildfly/10.1.0.Final/wildfly-10.1.0.Final.zip"
-     netbeans: "http://download.netbeans.org/netbeans/8.2/final/bundles/netbeans-8.2-linux.sh"
-     maven: "http://ftp.unicamp.br/pub/apache/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz"
-     ant: "http://ftp.unicamp.br/pub/apache//ant/binaries/apache-ant-1.10.1-bin.zip"
+     output_directory: "/tmp"
+     java_file: jdk-8u151-linux-x64.tar.gz
+     java_directory: jdk1.8.0_151
+     java_url: "http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/{{ java_file }}"
+     mysql_file: mysql-connector-java-5.1.45.tar.gz
+     mysql_url: "https://dev.mysql.com/get/Downloads/Connector-J/{{ mysql_file }}"
+     wildfly_file: wildfly-10.1.0.Final.zip
+     wildfly_url: "http://download.jboss.org/wildfly/10.1.0.Final/{{ wildfly_file }}"
+     netbeans_file: netbeans-8.2-linux.sh
+     netbeans_url: "http://download.netbeans.org/netbeans/8.2/final/bundles/{{ netbeans_file }}"
+     maven_file: apache-maven-3.5.2-bin.tar.gz
+     maven_url: "http://ftp.unicamp.br/pub/apache/maven/maven-3/3.5.2/binaries/{{ maven_file }}"
+     ant_file: apache-ant-1.10.1-bin.zip
+     ant_url: "http://ftp.unicamp.br/pub/apache//ant/binaries/{{ ant_file }}"
   tasks:
+     - name: Create all the directories necessaries
+       file: path={{ item }} state=directory
+       with_items:
+           - {{ output_directory }}/java/jdk
+           - {{ output_directory }}/java/ide
+           - {{ output_directory }}/java/tools/apache/maven
+           - {{ output_directory }}/java/tools/apache/ant
+           - {{ output_directory }}/java/api/jdbc/mysql
+
      - name: Downloading Oracle's Java Development Kit (JDK)
        uri: 
          method: GET
-         url: "{{ java }}"
+         url: "{{ java_url }}"
          validate_certs: No
          return_content: Yes
-         creates: Yes
-         dest: /tmp
+         dest: "{{ output_directory }}/java/jdk"
          follow_redirects: all
          headers:
            Cookie: "oraclelicense=accept-securebackup-cookie"
        tags:
           - java
 
-     - name: Downloading My
+     - name: Unarchive Oracle's Java Development Kit (JDK)
+       unarchive: src={{ output_directory }}/java/jdk/{{ java_file }}
+                  dest={{ output_directory }}/java/jdk
+       tags: 
+          - java
+
+    - name: "Create a symbolic link to the newly directory created: latest"
+      file: src={{ output_directory }}/java/jdk/{{ java_directory }}
+            dest={{ output_directory }}/java/jdk/latest state=link
+      tags:
+         - java
+
+    - name: Create a Environment variable into .bashrc
+      lineinfile: path={{ output_directory }}/.bashrc state=present insertbefore=EOF regexp="^JAVA_HOME="
+                  line="JAVA_HOME={{ output_directory }}/java/jdk/latest"
+      tags:
+         - java
+
+
+
 
