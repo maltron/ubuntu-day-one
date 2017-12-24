@@ -1,0 +1,29 @@
+---
+- name: Ubuntu's first Day 1
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+     java: "http://download.oracle.com/otn-pub/java/jdk/8u151-b12/e758a0de34e24606bca991d704f6dcbf/jdk-8u151-linux-x64.tar.gz"
+     mysql: "http://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.40.zip"
+     wildfly: "http://download.jboss.org/wildfly/10.1.0.Final/wildfly-10.1.0.Final.zip"
+     netbeans: "http://download.netbeans.org/netbeans/8.2/final/bundles/netbeans-8.2-linux.sh"
+     maven: "http://ftp.unicamp.br/pub/apache/maven/maven-3/3.5.2/binaries/apache-maven-3.5.2-bin.tar.gz"
+     ant: "http://ftp.unicamp.br/pub/apache//ant/binaries/apache-ant-1.10.1-bin.zip"
+  tasks:
+     - name: Downloading Oracle's Java Development Kit (JDK)
+       uri: 
+         method: GET
+         url: "{{ java }}"
+         validate_certs: No
+         return_content: Yes
+         creates: Yes
+         dest: /tmp
+         follow_redirects: all
+         headers:
+           Cookie: "oraclelicense=accept-securebackup-cookie"
+       tags:
+          - java
+
+     - name: Downloading My
+
